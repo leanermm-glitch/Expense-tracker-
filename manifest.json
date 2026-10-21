@@ -1,0 +1,16 @@
+{
+  "name": "Money Tracker",
+  "short_name": "Tracker",
+  "description": "Personal Expense Tracker",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2830/2830284.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
