@@ -592,11 +592,37 @@
             setTimeout(() => toast.classList.add('opacity-0'), 2500);
         }
 
-        function exportJSON() {
+        async function exportJSON() {
+            const dataObj = { transactions, budgets, recurring };
+            const jsonStr = JSON.stringify(dataObj, null, 2);
+            const fileName = `MoneyTracker_Backup_${new Date().toLocaleDateString('en-US').replace(/\//g, '-')}.json`;
+            
+            // Step 1: Try using the native iOS Share Sheet (perfect for Home Screen apps)
+            if (navigator.share) {
+                try {
+                    const file = new File([jsonStr], fileName, { type: 'application/json' });
+                    // Check if the device supports sharing files
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            title: 'Money Tracker Backup',
+                            files: [file]
+                        });
+                        return; // Stop here if share was successful
+                    }
+                } catch (err) {
+                    console.log("Share sheet cancelled or failed:", err);
+                    // If it fails (like user hits cancel), we just silently exit or fall through
+                }
+            }
+
+            // Step 2: Fallback for laptops/desktop browsers
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonStr);
             const dl = document.createElement('a');
-            dl.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({transactions, budgets, recurring}));
-            dl.download = `MoneyTracker_Backup_${new Date().toLocaleDateString()}.json`;
+            dl.href = dataStr;
+            dl.download = fileName;
+            document.body.appendChild(dl);
             dl.click();
+            document.body.removeChild(dl);
         }
 
         function importJSON(event) {
