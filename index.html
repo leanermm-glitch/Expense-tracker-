@@ -12,17 +12,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: { colors: { brand: { light: '#10b981', dark: '#059669' }, danger: { light: '#ef4444', dark: '#dc2626' } } }
-            }
-        }
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: { light: '#10b981', dark: '#059669' }, danger: { light: '#ef4444', dark: '#dc2626' } } } } }
     </script>
     <style>
-        ::-webkit-scrollbar { display: none; }
-        * { -ms-overflow-style: none; scrollbar-width: none; }
-        ::-webkit-calendar-picker-indicator { filter: invert(0.5); }
+        ::-webkit-scrollbar { display: none; } * { -ms-overflow-style: none; scrollbar-width: none; } ::-webkit-calendar-picker-indicator { filter: invert(0.5); }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-200 font-sans h-screen flex flex-col">
@@ -33,11 +26,8 @@
             <h1 class="text-xl font-bold">Money Tracker</h1>
             <div class="flex items-center gap-2">
                 <select id="currencySelector" class="bg-white/20 text-white border-none rounded p-1.5 outline-none text-sm cursor-pointer font-medium">
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                    <option value="SAR">SAR (ر.س)</option>
-                    <option value="INR">INR (₹)</option>
+                    <option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="GBP">GBP (£)</option>
+                    <option value="SAR">SAR (ر.س)</option><option value="INR">INR (₹)</option>
                 </select>
                 <button id="themeToggle" class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
                     <svg id="sunIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
@@ -45,71 +35,40 @@
                 </button>
             </div>
         </div>
-
         <div class="mb-4">
             <select id="dateFilter" class="w-full bg-white/20 text-white border-none rounded-lg p-2 outline-none text-sm cursor-pointer font-medium mb-2">
-                <option value="all" class="text-gray-800">All Time</option>
-                <option value="month" class="text-gray-800">This Month</option>
-                <option value="year" class="text-gray-800">This Year</option>
+                <option value="all" class="text-gray-800">All Time</option><option value="month" class="text-gray-800">This Month</option><option value="year" class="text-gray-800">This Year</option>
             </select>
         </div>
-        
         <div class="grid grid-cols-3 gap-2 text-center text-sm mb-1">
-            <div>
-                <p class="opacity-80 text-xs uppercase tracking-wider">Spendings</p>
-                <p id="totalExpense" class="font-bold text-lg text-red-200">0.00</p>
-            </div>
-            <div class="border-x border-white/30">
-                <p class="opacity-80 text-xs uppercase tracking-wider">Available</p>
-                <p id="totalBalance" class="font-bold text-xl">0.00</p>
-            </div>
-            <div>
-                <p class="opacity-80 text-xs uppercase tracking-wider">Initial</p>
-                <p id="totalIncome" class="font-bold text-lg text-green-200">0.00</p>
-            </div>
+            <div><p class="opacity-80 text-xs uppercase tracking-wider">Spendings</p><p id="totalExpense" class="font-bold text-lg text-red-200">0.00</p></div>
+            <div class="border-x border-white/30"><p class="opacity-80 text-xs uppercase tracking-wider">Available</p><p id="totalBalance" class="font-bold text-xl">0.00</p></div>
+            <div><p class="opacity-80 text-xs uppercase tracking-wider">Initial</p><p id="totalIncome" class="font-bold text-lg text-green-200">0.00</p></div>
         </div>
     </header>
 
     <!-- Main Content Area -->
     <main class="flex-1 overflow-y-auto p-4 relative pb-24">
-        
-        <!-- Records View -->
         <div id="recordsView" class="view-section block">
-            
-            <!-- Smart Assistant Banner -->
             <div id="insightsBanner"></div>
-
-            <div class="mb-4">
-                <input type="text" id="searchTx" placeholder="Search notes or categories..." class="w-full bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-3 rounded-xl shadow-sm outline-none text-sm border border-gray-100 dark:border-gray-700">
-            </div>
+            <div class="mb-4"><input type="text" id="searchTx" placeholder="Search notes or categories..." class="w-full bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-3 rounded-xl shadow-sm outline-none text-sm border border-gray-100 dark:border-gray-700"></div>
             <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">Transactions</h2>
             <div id="transactionList" class="space-y-3"></div>
             <p id="emptyState" class="text-center text-gray-400 mt-10 hidden">No transactions found.</p>
         </div>
-
-        <!-- Chart View -->
         <div id="chartView" class="view-section hidden">
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm mb-6">
-                <canvas id="expenseChart"></canvas>
-            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm mb-6"><canvas id="expenseChart"></canvas></div>
             <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">Spending Trends</h2>
             <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm mb-6"><canvas id="trendChart"></canvas></div>
         </div>
-
-        <!-- Budgets View -->
         <div id="budgetsView" class="view-section hidden">
             <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">Monthly Budgets</h2>
             <p class="text-xs text-gray-400 mb-4">Set limits for your spending. Tap a number to edit.</p>
             <div id="budgetList" class="space-y-4"></div>
         </div>
-
-        <!-- Reports View -->
         <div id="reportsView" class="view-section hidden">
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
-                <div class="p-4 border-b border-gray-100 dark:border-gray-700">
-                    <h2 class="font-bold text-lg">Data Management</h2>
-                    <p class="text-xs text-gray-500 mt-1">Export or restore your data</p>
-                </div>
+                <div class="p-4 border-b border-gray-100 dark:border-gray-700"><h2 class="font-bold text-lg">Data Management</h2><p class="text-xs text-gray-500 mt-1">Export or restore your data</p></div>
                 <button onclick="exportJSON()" class="w-full text-left p-4 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700">
                     <div class="p-2 bg-brand-light/20 text-brand-dark rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg></div>
                     <div><p class="font-medium">Backup Data (JSON)</p><p class="text-xs text-gray-400">Save full backup file</p></div>
@@ -130,22 +89,10 @@
 
     <!-- Bottom Navigation -->
     <nav class="bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 flex justify-around p-3 pb-safe fixed bottom-0 w-full z-0">
-        <button onclick="switchTab('records')" class="nav-btn active flex flex-col items-center text-brand-light dark:text-brand-dark">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
-            <span class="text-[10px] mt-1">Records</span>
-        </button>
-        <button onclick="switchTab('chart')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-brand-light dark:hover:text-brand-dark transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
-            <span class="text-[10px] mt-1">Chart</span>
-        </button>
-        <button onclick="switchTab('budgets')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-brand-light dark:hover:text-brand-dark transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-            <span class="text-[10px] mt-1">Budgets</span>
-        </button>
-        <button onclick="switchTab('reports')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-brand-light dark:hover:text-brand-dark transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            <span class="text-[10px] mt-1">Settings</span>
-        </button>
+        <button onclick="switchTab('records')" class="nav-btn active flex flex-col items-center text-brand-light dark:text-brand-dark"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg><span class="text-[10px] mt-1">Records</span></button>
+        <button onclick="switchTab('chart')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-brand-light dark:hover:text-brand-dark transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg><span class="text-[10px] mt-1">Chart</span></button>
+        <button onclick="switchTab('budgets')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-brand-light dark:hover:text-brand-dark transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg><span class="text-[10px] mt-1">Budgets</span></button>
+        <button onclick="switchTab('reports')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-brand-light dark:hover:text-brand-dark transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><span class="text-[10px] mt-1">Settings</span></button>
     </nav>
 
     <!-- Action Menu Modal (Edit / Delete) -->
@@ -155,8 +102,8 @@
                 <h3 class="font-bold text-lg">Transaction Options</h3>
                 <button onclick="closeActionModal()" class="p-1 bg-gray-100 dark:bg-gray-700 rounded-full"><svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
-            <button onclick="handleUpdateTx()" class="w-full bg-brand-light text-white font-bold py-3 rounded-xl mb-3 shadow-sm transition-transform active:scale-95">Update Record</button>
-            <button onclick="handleDeleteTx()" class="w-full bg-danger-light/10 text-danger-light font-bold py-3 rounded-xl shadow-sm transition-transform active:scale-95 border border-danger-light/20">Delete Record</button>
+            <button onclick="handleUpdateTx()" class="w-full bg-brand-light text-white font-bold py-3 rounded-xl mb-3 shadow-sm">Update Record</button>
+            <button onclick="handleDeleteTx()" class="w-full bg-danger-light/10 text-danger-light font-bold py-3 rounded-xl shadow-sm border border-danger-light/20">Delete Record</button>
         </div>
     </div>
 
@@ -170,7 +117,7 @@
             
             <div class="flex gap-2 mb-4 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
                 <button onclick="setTxType('expense')" id="btnTypeExpense" class="flex-1 py-1.5 rounded bg-danger-light text-white shadow-sm text-sm font-medium">Spendings</button>
-                <button onclick="setTxType('income')" id="btnTypeIncome" class="flex-1 py-1.5 rounded text-gray-500 dark:text-gray-400 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-600">Initial</button>
+                <button onclick="setTxType('income')" id="btnTypeIncome" class="flex-1 py-1.5 rounded text-gray-500 text-sm font-medium">Initial</button>
             </div>
 
             <form id="txForm" onsubmit="saveTransaction(event)">
@@ -178,11 +125,8 @@
                     <div class="flex-1">
                         <label class="text-xs text-gray-500 mb-1 block">Currency</label>
                         <select id="modalCurrency" class="w-full text-xl font-bold bg-transparent outline-none border-b border-gray-200 dark:border-gray-700 pb-2">
-                            <option value="USD">USD ($)</option>
-                            <option value="EUR">EUR (€)</option>
-                            <option value="GBP">GBP (£)</option>
-                            <option value="SAR">SAR (ر.س)</option>
-                            <option value="INR">INR (₹)</option>
+                            <option value="USD">USD ($)</option><option value="EUR">EUR (€)</option><option value="GBP">GBP (£)</option>
+                            <option value="SAR">SAR (ر.س)</option><option value="INR">INR (₹)</option>
                         </select>
                     </div>
                     <div class="flex-1">
@@ -190,29 +134,24 @@
                         <input type="date" id="txDate" required class="w-full text-base font-bold bg-transparent outline-none border-b border-gray-200 dark:border-gray-700 pb-2 text-gray-800 dark:text-white">
                     </div>
                 </div>
-
                 <div class="mb-4">
                     <label class="text-xs text-gray-500 mb-1 block">Amount</label>
                     <input type="number" id="txAmount" required step="0.01" placeholder="0.00" class="w-full text-4xl font-bold bg-transparent outline-none border-b border-gray-200 dark:border-gray-700 pb-2 text-danger-light">
                 </div>
-
                 <div class="mb-4">
                     <label class="text-xs text-gray-500 mb-2 block">Category</label>
                     <div id="categoryGrid" class="grid grid-cols-4 gap-3"></div>
                 </div>
-
                 <div class="mb-4 hidden" id="recurringWrapper">
                     <label class="flex items-center gap-2 cursor-pointer bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
                         <input type="checkbox" id="txRecurring" class="w-5 h-5 rounded text-danger-light focus:ring-danger-light">
                         <span class="text-sm font-medium">Repeat this automatically every month</span>
                     </label>
                 </div>
-
                 <div class="mb-6">
                     <label class="text-xs text-gray-500 mb-1 block">Note (Optional)</label>
                     <input type="text" id="txNote" placeholder="What was this for?" class="w-full bg-gray-50 dark:bg-gray-700 p-3 rounded-lg outline-none text-sm border border-gray-200 dark:border-gray-600">
                 </div>
-
                 <input type="hidden" id="txCategory" required>
                 <button id="saveBtn" type="submit" class="w-full bg-danger-light text-white font-bold py-3 rounded-xl">Save</button>
             </form>
@@ -225,6 +164,18 @@
     <script>
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed:', err)); }
 
+        // Local Date parsing fix to prevent Timezone shift bugs
+        function parseLocalDate(input) {
+            if (!input) return new Date();
+            if (typeof input === 'number') return new Date(input);
+            const str = String(input);
+            if (str.includes('-')) {
+                const [y, m, d] = str.split('-');
+                return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+            }
+            return new Date(input);
+        }
+
         let transactions = JSON.parse(localStorage.getItem('moneyTrackerTx')) || [];
         let budgets = JSON.parse(localStorage.getItem('moneyTrackerBudgets')) || {};
         let recurring = JSON.parse(localStorage.getItem('moneyTrackerRecurring')) || [];
@@ -232,7 +183,7 @@
         let currentType = 'expense';
         let currentCurrency = localStorage.getItem('selectedCurrency') || 'USD';
         let filterMode = localStorage.getItem('dateFilterMode') || 'month';
-        let editingTxId = null; // NEW: tracks if we are updating a transaction
+        let editingTxId = null; 
         let myChart = null; let myTrendChart = null;
 
         const currencySymbols = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'SAR': 'ر.س', 'INR': '₹' };
@@ -252,10 +203,12 @@
         function processRecurring() {
             const today = new Date(); let addedNew = false;
             recurring.forEach(rec => {
-                let nextDate = new Date(rec.nextDate);
+                let nextDate = parseLocalDate(rec.nextDate);
                 while (nextDate <= today) {
-                    transactions.push({ id: Date.now() + Math.random(), type: 'expense', amount: rec.amount, category: rec.category, currency: rec.currency, date: nextDate.toISOString().split('T')[0], note: rec.note + ' (Auto-recurring)' });
-                    nextDate.setMonth(nextDate.getMonth() + 1); rec.nextDate = nextDate.toISOString().split('T')[0]; addedNew = true;
+                    transactions.push({ id: Date.now() + Math.random(), type: 'expense', amount: rec.amount, category: rec.category, currency: rec.currency, date: `${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}-${String(nextDate.getDate()).padStart(2,'0')}`, note: rec.note + ' (Auto-recurring)' });
+                    nextDate.setMonth(nextDate.getMonth() + 1); 
+                    rec.nextDate = `${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}-${String(nextDate.getDate()).padStart(2,'0')}`; 
+                    addedNew = true;
                 }
             });
             if (addedNew) { localStorage.setItem('moneyTrackerTx', JSON.stringify(transactions)); localStorage.setItem('moneyTrackerRecurring', JSON.stringify(recurring)); }
@@ -288,7 +241,7 @@
 
         const formatMoney = (amount) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
 
-        // --- SMART INSIGHTS ASSISTANT ---
+        // --- SMART INSIGHTS ASSISTANT (Fixed for Local Timezone) ---
         function generateInsights(sym) {
             const insightsDiv = document.getElementById('insightsBanner');
             if (!insightsDiv) return;
@@ -302,7 +255,7 @@
             let todaySpent = 0; let yesterdaySpent = 0;
 
             currencyTx.forEach(t => {
-                const txDate = new Date(t.date || t.id).getTime();
+                const txDate = parseLocalDate(t.date || t.id).getTime();
                 if (txDate >= todayStart && txDate < tomorrowStart) { todaySpent += t.amount; } 
                 else if (txDate >= yesterdayStart && txDate < todayStart) { yesterdaySpent += t.amount; }
             });
@@ -339,13 +292,50 @@
             insightsDiv.innerHTML = html;
         }
 
+        // --- 10 PM NOTIFICATION FEATURE ---
+        function check10PMNotification(sym) {
+            const now = new Date();
+            const todayStr = now.toLocaleDateString();
+            const lastNotified = localStorage.getItem('last10PMNotification');
+
+            // If it is 10 PM (22:00) or later, and we haven't shown it today
+            if (now.getHours() >= 22 && lastNotified !== todayStr) {
+                localStorage.setItem('last10PMNotification', todayStr);
+                
+                const currencyTx = transactions.filter(t => t.currency === currentCurrency && t.type === 'expense');
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                const yesterdayStart = todayStart - (24 * 60 * 60 * 1000);
+                
+                let todaySpent = 0; let yesterdaySpent = 0;
+                currencyTx.forEach(t => {
+                    const txDate = parseLocalDate(t.date || t.id).getTime();
+                    if (txDate >= todayStart) todaySpent += t.amount;
+                    else if (txDate >= yesterdayStart && txDate < todayStart) yesterdaySpent += t.amount;
+                });
+                
+                const diff = Math.abs(todaySpent - yesterdaySpent);
+                const formattedDiff = `${sym}${formatMoney(diff)}`;
+                
+                let msg = '';
+                if (todaySpent < yesterdaySpent) {
+                    msg = `🎉 10 PM Daily Review: Great job today! You spent ${formattedDiff} LESS than yesterday. Keep up the amazing work!`;
+                } else if (todaySpent > yesterdaySpent) {
+                    msg = `💪 10 PM Daily Review: You spent ${formattedDiff} MORE than yesterday. Tomorrow is a new day to lower expenses!`;
+                } else {
+                    msg = `✨ 10 PM Daily Review: Perfect consistency. You spent the exact same (or zero) as yesterday.`;
+                }
+                
+                setTimeout(() => alert(msg), 1000); // Trigger native iOS popup alert
+            }
+        }
+
         function getFilteredTransactions() {
             const now = new Date();
             const searchVal = document.getElementById('searchTx').value.toLowerCase();
             
             return transactions.filter(t => {
                 if (t.currency !== currentCurrency) return false;
-                const txDate = new Date(t.date || t.id);
+                const txDate = parseLocalDate(t.date || t.id);
                 
                 if (filterMode === 'month') {
                     if (txDate.getMonth() !== now.getMonth() || txDate.getFullYear() !== now.getFullYear()) return false;
@@ -378,9 +368,9 @@
             renderTransactionList(filteredTx, sym);
             updateChart(filteredTx, sym);
             renderBudgets(sym);
+            check10PMNotification(sym);
         }
 
-        // --- NEW EDIT/DELETE ACTION MENU ---
         function openActionModal(id) {
             editingTxId = id;
             document.getElementById('actionModal').classList.remove('hidden');
@@ -392,10 +382,7 @@
             setTimeout(() => { document.getElementById('actionModal').classList.add('hidden'); }, 300);
         }
 
-        function handleDeleteTx() {
-            deleteTx(editingTxId);
-            closeActionModal();
-        }
+        function handleDeleteTx() { deleteTx(editingTxId); closeActionModal(); }
 
         function handleUpdateTx() {
             closeActionModal();
@@ -410,18 +397,13 @@
                 document.getElementById('txAmount').value = tx.amount; 
                 document.getElementById('txNote').value = tx.note || ''; 
                 
-                // Hide recurring to prevent complex double-recurring entries when editing
                 document.getElementById('recurringWrapper').classList.add('hidden');
                 document.getElementById('txRecurring').checked = false;
+                setTxType(tx.type); document.getElementById('saveBtn').innerText = 'Update';
 
-                setTxType(tx.type); 
-                document.getElementById('saveBtn').innerText = 'Update';
-
-                // Ensure categories are loaded then click the right one
                 setTimeout(() => {
                     const grid = document.getElementById('categoryGrid');
-                    const catDivs = grid.querySelectorAll('.cat-item');
-                    catDivs.forEach(div => {
+                    grid.querySelectorAll('.cat-item').forEach(div => {
                         if (div.getAttribute('onclick').includes(`'${tx.category}'`)) div.click();
                     });
                 }, 50);
@@ -432,10 +414,10 @@
             const list = document.getElementById('transactionList'); const emptyState = document.getElementById('emptyState'); list.innerHTML = '';
             if (filteredTx.length === 0) { emptyState.classList.remove('hidden'); } else {
                 emptyState.classList.add('hidden');
-                filteredTx.sort((a, b) => new Date(b.date || b.id) - new Date(a.date || a.id)).forEach(tx => {
+                filteredTx.sort((a, b) => parseLocalDate(b.date || b.id).getTime() - parseLocalDate(a.date || a.id).getTime()).forEach(tx => {
                     const cat = [...expenseCategories, ...incomeCategories].find(c => c.id === tx.category) || { icon: '📝', name: 'Unknown' };
                     const isExp = tx.type === 'expense';
-                    const displayDate = new Date(tx.date || tx.id).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const displayDate = parseLocalDate(tx.date || tx.id).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     const noteHtml = tx.note ? `<p class="text-xs text-gray-400 truncate max-w-[150px]">${tx.note}</p>` : '';
                     list.innerHTML += `
                         <div class="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border-l-4 ${isExp ? 'border-danger-light' : 'border-brand-light'}">
@@ -458,7 +440,7 @@
             const list = document.getElementById('budgetList'); list.innerHTML = '';
             const now = new Date();
             const currentMonthTx = transactions.filter(t => {
-                const d = new Date(t.date || t.id);
+                const d = parseLocalDate(t.date || t.id);
                 return t.currency === currentCurrency && t.type === 'expense' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
             });
             let spentPerCat = {};
@@ -494,7 +476,7 @@
             expenseTx.forEach(t => {
                 const catName = expenseCategories.find(c => c.id === t.category)?.name || 'Other';
                 catData[catName] = (catData[catName] || 0) + t.amount;
-                const d = t.date || new Date(t.id).toISOString().split('T')[0]; dateData[d] = (dateData[d] || 0) + t.amount;
+                const d = parseLocalDate(t.date || t.id).toISOString().split('T')[0]; dateData[d] = (dateData[d] || 0) + t.amount;
             });
 
             const ctxDonut = document.getElementById('expenseChart').getContext('2d');
@@ -510,7 +492,7 @@
             if (myTrendChart) myTrendChart.destroy();
             myTrendChart = new Chart(ctxTrend, {
                 type: 'line',
-                data: { labels: sortedDates.map(d => new Date(d).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})), datasets: [{ label: 'Spendings', data: sortedDates.map(d => dateData[d]), borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 }] },
+                data: { labels: sortedDates.map(d => parseLocalDate(d).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})), datasets: [{ label: 'Spendings', data: sortedDates.map(d => dateData[d]), borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 }] },
                 options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: textColor } }, y: { ticks: { color: textColor } } } }
             });
         }
@@ -523,7 +505,7 @@
         }
 
         function openModal() {
-            editingTxId = null; // Reset edit state
+            editingTxId = null; 
             document.getElementById('modalTitle').innerText = 'Add Record';
             document.getElementById('saveBtn').innerText = 'Save';
             document.getElementById('addModal').classList.remove('hidden'); setTimeout(() => { document.getElementById('modalContent').classList.remove('translate-y-full'); }, 10);
@@ -548,4 +530,75 @@
             }
         }
 
-        function renderCategories
+        function renderCategories(cats) {
+            document.getElementById('categoryGrid').innerHTML = cats.map(c => `<div onclick="selectCategory('${c.id}', this)" class="cat-item flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition"><div class="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-xl">${c.icon}</div><span class="text-[10px] text-gray-500">${c.name}</span></div>`).join(''); document.getElementById('txCategory').value = '';
+        }
+
+        function selectCategory(id, el) {
+            const activeColor = currentType === 'expense' ? 'bg-danger-light ring-danger-light' : 'bg-brand-light ring-brand-light';
+            document.querySelectorAll('.cat-item div').forEach(d => d.className = 'w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-xl');
+            el.querySelector('div').className = `w-10 h-10 ${activeColor} text-white rounded-full flex items-center justify-center text-xl ring-2 ring-offset-2 dark:ring-offset-gray-800`; document.getElementById('txCategory').value = id;
+        }
+
+        function saveTransaction(e) {
+            e.preventDefault(); const amount = parseFloat(document.getElementById('txAmount').value); const category = document.getElementById('txCategory').value;
+            const modalCurr = document.getElementById('modalCurrency').value; const txDate = document.getElementById('txDate').value;
+            const note = document.getElementById('txNote').value.trim(); const isRecurring = document.getElementById('txRecurring').checked;
+            
+            if (!amount || !category || !txDate) return showToast("Complete all required fields");
+            
+            if (editingTxId) {
+                const index = transactions.findIndex(t => t.id === editingTxId);
+                if (index !== -1) transactions[index] = { ...transactions[index], type: currentType, amount, category, currency: modalCurr, date: txDate, note };
+                editingTxId = null; showToast("Record updated!");
+            } else {
+                transactions.push({ id: Date.now(), type: currentType, amount, category, currency: modalCurr, date: txDate, note });
+                if (currentType === 'expense' && isRecurring) {
+                    let nextD = parseLocalDate(txDate); nextD.setMonth(nextD.getMonth() + 1);
+                    recurring.push({ amount, category, currency: modalCurr, note, nextDate: `${nextD.getFullYear()}-${String(nextD.getMonth()+1).padStart(2,'0')}-${String(nextD.getDate()).padStart(2,'0')}` }); localStorage.setItem('moneyTrackerRecurring', JSON.stringify(recurring));
+                }
+                showToast("Record saved!");
+            }
+
+            localStorage.setItem('moneyTrackerTx', JSON.stringify(transactions));
+            if(modalCurr !== currentCurrency) { document.getElementById('currencySelector').value = currentCurrency = modalCurr; localStorage.setItem('selectedCurrency', modalCurr); }
+            closeModal(); updateUI();
+        }
+
+        function deleteTx(id) { transactions = transactions.filter(t => t.id !== id); localStorage.setItem('moneyTrackerTx', JSON.stringify(transactions)); updateUI(); showToast("Record deleted"); }
+
+        function showToast(msg) { const toast = document.getElementById('toast'); toast.innerText = msg; toast.classList.remove('opacity-0'); setTimeout(() => toast.classList.add('opacity-0'), 2500); }
+
+        async function exportJSON() {
+            const dataObj = { transactions, budgets, recurring }; const jsonStr = JSON.stringify(dataObj, null, 2); const fileName = `MoneyTracker_Backup_${new Date().toLocaleDateString('en-US').replace(/\//g, '-')}.json`;
+            if (navigator.share) {
+                try {
+                    const file = new File([jsonStr], fileName, { type: 'application/json' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ title: 'Money Tracker Backup', files: [file] }); return; }
+                } catch (err) {}
+            }
+            const dl = document.createElement('a'); dl.href = "data:text/json;charset=utf-8," + encodeURIComponent(jsonStr); dl.download = fileName;
+            document.body.appendChild(dl); dl.click(); document.body.removeChild(dl);
+        }
+
+        function importJSON(event) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const imp = JSON.parse(e.target.result);
+                    if(imp.transactions) {
+                        transactions = imp.transactions; budgets = imp.budgets || {}; recurring = imp.recurring || [];
+                        localStorage.setItem('moneyTrackerTx', JSON.stringify(transactions)); localStorage.setItem('moneyTrackerBudgets', JSON.stringify(budgets)); localStorage.setItem('moneyTrackerRecurring', JSON.stringify(recurring));
+                        updateUI(); showToast("Data restored!");
+                    } else if (Array.isArray(imp)) {
+                        transactions = imp; localStorage.setItem('moneyTrackerTx', JSON.stringify(transactions)); updateUI(); showToast("Legacy Data restored!");
+                    }
+                } catch (err) { showToast("Error restoring data"); }
+            };
+            if(event.target.files[0]) reader.readAsText(event.target.files[0]);
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
