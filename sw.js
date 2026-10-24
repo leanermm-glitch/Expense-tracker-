@@ -1,4 +1,4 @@
-const CACHE_NAME = 'money-tracker-v3';
+const CACHE_NAME = 'money-tracker-v5';
 const urlsToCache = [
   './',
   './index.html',
