@@ -102,8 +102,8 @@
                 <h3 class="font-bold text-lg">Transaction Options</h3>
                 <button onclick="closeActionModal()" class="p-1 bg-gray-100 dark:bg-gray-700 rounded-full"><svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
-            <button onclick="handleUpdateTx()" class="w-full bg-brand-light text-white font-bold py-3 rounded-xl mb-3 shadow-sm">Update Record</button>
-            <button onclick="handleDeleteTx()" class="w-full bg-danger-light/10 text-danger-light font-bold py-3 rounded-xl shadow-sm border border-danger-light/20">Delete Record</button>
+            <button onclick="handleUpdateTx()" class="w-full bg-brand-light text-white font-bold py-3 rounded-xl mb-3 shadow-sm transition-transform active:scale-95">Update Record</button>
+            <button onclick="handleDeleteTx()" class="w-full bg-danger-light/10 text-danger-light font-bold py-3 rounded-xl shadow-sm transition-transform active:scale-95 border border-danger-light/20">Delete Record</button>
         </div>
     </div>
 
@@ -117,7 +117,7 @@
             
             <div class="flex gap-2 mb-4 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
                 <button onclick="setTxType('expense')" id="btnTypeExpense" class="flex-1 py-1.5 rounded bg-danger-light text-white shadow-sm text-sm font-medium">Spendings</button>
-                <button onclick="setTxType('income')" id="btnTypeIncome" class="flex-1 py-1.5 rounded text-gray-500 text-sm font-medium">Initial</button>
+                <button onclick="setTxType('income')" id="btnTypeIncome" class="flex-1 py-1.5 rounded text-gray-500 dark:text-gray-400 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-600">Initial</button>
             </div>
 
             <form id="txForm" onsubmit="saveTransaction(event)">
@@ -158,43 +158,33 @@
         </div>
     </div>
 
-    <!-- Notification Toast -->
     <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50 text-sm"></div>
 
     <script>
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed:', err)); }
 
-        // Local Date parsing fix to prevent Timezone shift bugs
+        function getLocalDateString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
         function parseLocalDate(input) {
             if (!input) return new Date();
             if (typeof input === 'number') return new Date(input);
             const str = String(input);
-            if (str.includes('-')) {
-                const [y, m, d] = str.split('-');
-                return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-            }
+            if (str.includes('-')) { const parts = str.split('T')[0].split('-'); if (parts.length === 3) return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])); }
             return new Date(input);
         }
 
         let transactions = JSON.parse(localStorage.getItem('moneyTrackerTx')) || [];
         let budgets = JSON.parse(localStorage.getItem('moneyTrackerBudgets')) || {};
         let recurring = JSON.parse(localStorage.getItem('moneyTrackerRecurring')) || [];
-        
-        let currentType = 'expense';
-        let currentCurrency = localStorage.getItem('selectedCurrency') || 'USD';
-        let filterMode = localStorage.getItem('dateFilterMode') || 'month';
-        let editingTxId = null; 
-        let myChart = null; let myTrendChart = null;
+        let currentType = 'expense'; let currentCurrency = localStorage.getItem('selectedCurrency') || 'USD'; let filterMode = localStorage.getItem('dateFilterMode') || 'month';
+        let editingTxId = null; let myChart = null; let myTrendChart = null;
 
         const currencySymbols = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'SAR': 'ر.س', 'INR': '₹' };
-        
         const expenseCategories = [
             { id: 'food', icon: '🍔', name: 'Food' }, { id: 'shop', icon: '🛍️', name: 'Shopping' },
             { id: 'transport', icon: '🚗', name: 'Transport' }, { id: 'home', icon: '🏠', name: 'Home' },
             { id: 'bills', icon: '📱', name: 'Bills' }, { id: 'entertainment', icon: '🎬', name: 'Fun' },
             { id: 'health', icon: '⚕️', name: 'Health' }, { id: 'other', icon: '📦', name: 'Other' }
         ];
-
         const incomeCategories = [
             { id: 'salary', icon: '💰', name: 'Salary' }, { id: 'freelance', icon: '💻', name: 'Freelance' },
             { id: 'gift', icon: '🎁', name: 'Gift' }, { id: 'invest', icon: '📈', name: 'Returns' }
@@ -205,80 +195,82 @@
             recurring.forEach(rec => {
                 let nextDate = parseLocalDate(rec.nextDate);
                 while (nextDate <= today) {
-                    transactions.push({ id: Date.now() + Math.random(), type: 'expense', amount: rec.amount, category: rec.category, currency: rec.currency, date: `${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}-${String(nextDate.getDate()).padStart(2,'0')}`, note: rec.note + ' (Auto-recurring)' });
-                    nextDate.setMonth(nextDate.getMonth() + 1); 
-                    rec.nextDate = `${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}-${String(nextDate.getDate()).padStart(2,'0')}`; 
-                    addedNew = true;
+                    transactions.push({ id: Date.now() + Math.random(), type: 'expense', amount: rec.amount, category: rec.category, currency: rec.currency, date: getLocalDateString(nextDate), note: rec.note + ' (Auto-recurring)' });
+                    nextDate.setMonth(nextDate.getMonth() + 1); rec.nextDate = getLocalDateString(nextDate); addedNew = true;
                 }
             });
             if (addedNew) { localStorage.setItem('moneyTrackerTx', JSON.stringify(transactions)); localStorage.setItem('moneyTrackerRecurring', JSON.stringify(recurring)); }
         }
 
         processRecurring();
-        document.getElementById('currencySelector').value = currentCurrency;
-        document.getElementById('dateFilter').value = filterMode;
+        document.getElementById('currencySelector').value = currentCurrency; document.getElementById('dateFilter').value = filterMode;
 
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark'); document.getElementById('sunIcon').classList.remove('hidden'); document.getElementById('moonIcon').classList.add('hidden');
         }
 
         document.getElementById('themeToggle').addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             document.getElementById('sunIcon').classList.toggle('hidden'); document.getElementById('moonIcon').classList.toggle('hidden');
             if (myChart) updateUI();
         });
 
-        document.getElementById('currencySelector').addEventListener('change', (e) => {
-            currentCurrency = e.target.value; localStorage.setItem('selectedCurrency', currentCurrency); updateUI();
-        });
-
-        document.getElementById('dateFilter').addEventListener('change', (e) => {
-            filterMode = e.target.value; localStorage.setItem('dateFilterMode', filterMode); updateUI();
-        });
-
+        document.getElementById('currencySelector').addEventListener('change', (e) => { currentCurrency = e.target.value; localStorage.setItem('selectedCurrency', currentCurrency); updateUI(); });
+        document.getElementById('dateFilter').addEventListener('change', (e) => { filterMode = e.target.value; localStorage.setItem('dateFilterMode', filterMode); updateUI(); });
         document.getElementById('searchTx').addEventListener('input', updateUI);
 
         const formatMoney = (amount) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
 
-        // --- SMART INSIGHTS ASSISTANT (Fixed for Local Timezone) ---
+        // --- INTERACTIVE SMART INSIGHTS ---
         function generateInsights(sym) {
             const insightsDiv = document.getElementById('insightsBanner');
             if (!insightsDiv) return;
 
             const currencyTx = transactions.filter(t => t.currency === currentCurrency && t.type === 'expense');
-            const now = new Date();
-            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-            const yesterdayStart = todayStart - (24 * 60 * 60 * 1000);
-            const tomorrowStart = todayStart + (24 * 60 * 60 * 1000);
+            const now = new Date(); const todayStr = getLocalDateString(now);
+            const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1); const yesterdayStr = getLocalDateString(yesterday);
 
             let todaySpent = 0; let yesterdaySpent = 0;
 
             currencyTx.forEach(t => {
-                const txDate = parseLocalDate(t.date || t.id).getTime();
-                if (txDate >= todayStart && txDate < tomorrowStart) { todaySpent += t.amount; } 
-                else if (txDate >= yesterdayStart && txDate < todayStart) { yesterdaySpent += t.amount; }
+                let txDateStr = (t.date && t.date.includes('-')) ? t.date.split('T')[0] : getLocalDateString(new Date(t.id));
+                if (txDateStr === todayStr) { todaySpent += t.amount; } else if (txDateStr === yesterdayStr) { yesterdaySpent += t.amount; }
             });
 
             const diff = Math.abs(todaySpent - yesterdaySpent);
             const formattedDiff = `${sym}${formatMoney(diff)}`;
+            const formattedToday = `${sym}${formatMoney(todaySpent)}`;
+            const formattedYesterday = `${sym}${formatMoney(yesterdaySpent)}`;
+            
+            const detailsHtml = `
+                <div id="insightDetails" class="hidden mt-3 pt-3 border-t border-black/10 dark:border-white/10 text-sm w-full">
+                    <div class="flex justify-between mb-1 text-gray-700 dark:text-gray-200"><span>Today's Total:</span> <span class="font-bold">${formattedToday}</span></div>
+                    <div class="flex justify-between text-gray-700 dark:text-gray-200"><span>Yesterday's Total:</span> <span class="font-bold">${formattedYesterday}</span></div>
+                </div>`;
+            
             let html = '';
 
             if (todaySpent < yesterdaySpent) {
-                html = `<div class="bg-brand-light/10 border border-brand-light/30 p-4 rounded-2xl mb-5 flex items-start gap-4 shadow-sm">
-                            <div class="text-3xl mt-1">🎉</div>
-                            <div>
-                                <p class="font-bold text-brand-dark dark:text-brand-light text-base">Amazing job today!</p>
-                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 leading-snug">Congratulations! You've spent <strong class="text-brand-dark dark:text-brand-light">${formattedDiff} less</strong> today than yesterday. You are building fantastic financial habits!</p>
+                html = `<div onclick="document.getElementById('insightDetails').classList.toggle('hidden')" class="cursor-pointer active:scale-[0.99] transition-transform bg-brand-light/10 border border-brand-light/30 p-4 rounded-2xl mb-5 flex flex-col shadow-sm">
+                            <div class="flex items-start gap-4">
+                                <div class="text-3xl mt-1">🎉</div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-brand-dark dark:text-brand-light text-base">Amazing job today!</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 leading-snug">You spent <strong class="text-brand-dark dark:text-brand-light">${formattedDiff} less</strong> today than yesterday. <span class="text-xs font-medium opacity-70 block mt-1">Tap to see details ⬇️</span></p>
+                                </div>
                             </div>
+                            ${detailsHtml}
                         </div>`;
             } else if (todaySpent > yesterdaySpent) {
-                html = `<div class="bg-orange-500/10 border border-orange-500/30 p-4 rounded-2xl mb-5 flex items-start gap-4 shadow-sm">
-                            <div class="text-3xl mt-1">💪</div>
-                            <div>
-                                <p class="font-bold text-orange-600 dark:text-orange-400 text-base">You can boost your savings!</p>
-                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 leading-snug">You spent <strong class="text-orange-600 dark:text-orange-400">${formattedDiff} more</strong> today than yesterday. Every day is a fresh start—let's crush it and keep expenses lower tomorrow!</p>
+                html = `<div onclick="document.getElementById('insightDetails').classList.toggle('hidden')" class="cursor-pointer active:scale-[0.99] transition-transform bg-orange-500/10 border border-orange-500/30 p-4 rounded-2xl mb-5 flex flex-col shadow-sm">
+                            <div class="flex items-start gap-4">
+                                <div class="text-3xl mt-1">💪</div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-orange-600 dark:text-orange-400 text-base">You can boost your savings!</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 leading-snug">You spent <strong class="text-orange-600 dark:text-orange-400">${formattedDiff} more</strong> today than yesterday. <span class="text-xs font-medium opacity-70 block mt-1">Tap to see details ⬇️</span></p>
+                                </div>
                             </div>
+                            ${detailsHtml}
                         </div>`;
             } else if (todaySpent === 0 && yesterdaySpent === 0) {
                  html = `<div class="bg-blue-500/10 border border-blue-500/30 p-4 rounded-2xl mb-5 flex items-start gap-4 shadow-sm">
@@ -288,61 +280,51 @@
                                 <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 leading-snug">No spendings today or yesterday. Your wallet is very happy with you!</p>
                             </div>
                         </div>`;
+            } else if (todaySpent === yesterdaySpent) {
+                html = `<div onclick="document.getElementById('insightDetails').classList.toggle('hidden')" class="cursor-pointer active:scale-[0.99] transition-transform bg-gray-500/10 border border-gray-500/30 p-4 rounded-2xl mb-5 flex flex-col shadow-sm">
+                            <div class="flex items-start gap-4">
+                                <div class="text-3xl mt-1">⚖️</div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-gray-700 dark:text-gray-300 text-base">Perfectly Balanced!</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 leading-snug">You spent the exact same amount today as yesterday. <span class="text-xs font-medium opacity-70 block mt-1">Tap to see details ⬇️</span></p>
+                                </div>
+                            </div>
+                            ${detailsHtml}
+                        </div>`;
             }
             insightsDiv.innerHTML = html;
         }
 
-        // --- 10 PM NOTIFICATION FEATURE ---
+        // --- 10 PM NOTIFICATION ---
         function check10PMNotification(sym) {
-            const now = new Date();
-            const todayStr = now.toLocaleDateString();
-            const lastNotified = localStorage.getItem('last10PMNotification');
-
-            // If it is 10 PM (22:00) or later, and we haven't shown it today
+            const now = new Date(); const todayStr = getLocalDateString(now); const lastNotified = localStorage.getItem('last10PMNotification');
             if (now.getHours() >= 22 && lastNotified !== todayStr) {
                 localStorage.setItem('last10PMNotification', todayStr);
-                
                 const currencyTx = transactions.filter(t => t.currency === currentCurrency && t.type === 'expense');
-                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-                const yesterdayStart = todayStart - (24 * 60 * 60 * 1000);
-                
+                const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1); const yesterdayStr = getLocalDateString(yesterday);
                 let todaySpent = 0; let yesterdaySpent = 0;
+                
                 currencyTx.forEach(t => {
-                    const txDate = parseLocalDate(t.date || t.id).getTime();
-                    if (txDate >= todayStart) todaySpent += t.amount;
-                    else if (txDate >= yesterdayStart && txDate < todayStart) yesterdaySpent += t.amount;
+                    let txDateStr = (t.date && t.date.includes('-')) ? t.date.split('T')[0] : getLocalDateString(new Date(t.id));
+                    if (txDateStr === todayStr) todaySpent += t.amount; else if (txDateStr === yesterdayStr) yesterdaySpent += t.amount;
                 });
                 
-                const diff = Math.abs(todaySpent - yesterdaySpent);
-                const formattedDiff = `${sym}${formatMoney(diff)}`;
-                
+                const diff = Math.abs(todaySpent - yesterdaySpent); const formattedDiff = `${sym}${formatMoney(diff)}`;
                 let msg = '';
-                if (todaySpent < yesterdaySpent) {
-                    msg = `🎉 10 PM Daily Review: Great job today! You spent ${formattedDiff} LESS than yesterday. Keep up the amazing work!`;
-                } else if (todaySpent > yesterdaySpent) {
-                    msg = `💪 10 PM Daily Review: You spent ${formattedDiff} MORE than yesterday. Tomorrow is a new day to lower expenses!`;
-                } else {
-                    msg = `✨ 10 PM Daily Review: Perfect consistency. You spent the exact same (or zero) as yesterday.`;
-                }
-                
-                setTimeout(() => alert(msg), 1000); // Trigger native iOS popup alert
+                if (todaySpent < yesterdaySpent) { msg = `🎉 10 PM Daily Review: Great job today! You spent ${formattedDiff} LESS than yesterday. Keep up the amazing work!`; } 
+                else if (todaySpent > yesterdaySpent) { msg = `💪 10 PM Daily Review: You spent ${formattedDiff} MORE than yesterday. Tomorrow is a new day to lower expenses!`; } 
+                else { msg = `✨ 10 PM Daily Review: Perfect consistency. You spent exactly the same as yesterday.`; }
+                setTimeout(() => alert(msg), 1000);
             }
         }
 
         function getFilteredTransactions() {
-            const now = new Date();
-            const searchVal = document.getElementById('searchTx').value.toLowerCase();
-            
+            const now = new Date(); const searchVal = document.getElementById('searchTx').value.toLowerCase();
             return transactions.filter(t => {
                 if (t.currency !== currentCurrency) return false;
                 const txDate = parseLocalDate(t.date || t.id);
-                
-                if (filterMode === 'month') {
-                    if (txDate.getMonth() !== now.getMonth() || txDate.getFullYear() !== now.getFullYear()) return false;
-                } else if (filterMode === 'year') {
-                    if (txDate.getFullYear() !== now.getFullYear()) return false;
-                }
-
+                if (filterMode === 'month') { if (txDate.getMonth() !== now.getMonth() || txDate.getFullYear() !== now.getFullYear()) return false; } 
+                else if (filterMode === 'year') { if (txDate.getFullYear() !== now.getFullYear()) return false; }
                 if (searchVal) {
                     const catName = [...expenseCategories, ...incomeCategories].find(c => c.id === t.category)?.name.toLowerCase() || '';
                     const note = (t.note || '').toLowerCase();
@@ -353,60 +335,29 @@
         }
 
         function updateUI() {
-            const filteredTx = getFilteredTransactions();
-            let expenses = 0, income = 0;
-            filteredTx.forEach(t => {
-                if (t.type === 'expense') expenses += t.amount; else income += t.amount;
-            });
-
+            const filteredTx = getFilteredTransactions(); let expenses = 0, income = 0;
+            filteredTx.forEach(t => { if (t.type === 'expense') expenses += t.amount; else income += t.amount; });
             const sym = currencySymbols[currentCurrency];
             document.getElementById('totalExpense').innerText = `${sym}${formatMoney(expenses)}`;
             document.getElementById('totalIncome').innerText = `${sym}${formatMoney(income)}`;
             document.getElementById('totalBalance').innerText = `${sym}${formatMoney(income - expenses)}`;
 
-            generateInsights(sym);
-            renderTransactionList(filteredTx, sym);
-            updateChart(filteredTx, sym);
-            renderBudgets(sym);
-            check10PMNotification(sym);
+            generateInsights(sym); renderTransactionList(filteredTx, sym); updateChart(filteredTx, sym); renderBudgets(sym); check10PMNotification(sym);
         }
 
-        function openActionModal(id) {
-            editingTxId = id;
-            document.getElementById('actionModal').classList.remove('hidden');
-            setTimeout(() => { document.getElementById('actionModalContent').classList.remove('translate-y-full'); }, 10);
-        }
-
-        function closeActionModal() {
-            document.getElementById('actionModalContent').classList.add('translate-y-full');
-            setTimeout(() => { document.getElementById('actionModal').classList.add('hidden'); }, 300);
-        }
-
+        function openActionModal(id) { editingTxId = id; document.getElementById('actionModal').classList.remove('hidden'); setTimeout(() => { document.getElementById('actionModalContent').classList.remove('translate-y-full'); }, 10); }
+        function closeActionModal() { document.getElementById('actionModalContent').classList.add('translate-y-full'); setTimeout(() => { document.getElementById('actionModal').classList.add('hidden'); }, 300); }
         function handleDeleteTx() { deleteTx(editingTxId); closeActionModal(); }
 
         function handleUpdateTx() {
-            closeActionModal();
-            const tx = transactions.find(t => t.id === editingTxId);
+            closeActionModal(); const tx = transactions.find(t => t.id === editingTxId);
             if (tx) {
-                document.getElementById('modalTitle').innerText = 'Update Record';
-                document.getElementById('addModal').classList.remove('hidden'); 
-                setTimeout(() => { document.getElementById('modalContent').classList.remove('translate-y-full'); }, 10);
-                
-                document.getElementById('modalCurrency').value = tx.currency; 
-                document.getElementById('txDate').value = tx.date || new Date(tx.id).toISOString().split('T')[0];
-                document.getElementById('txAmount').value = tx.amount; 
-                document.getElementById('txNote').value = tx.note || ''; 
-                
-                document.getElementById('recurringWrapper').classList.add('hidden');
-                document.getElementById('txRecurring').checked = false;
+                document.getElementById('modalTitle').innerText = 'Update Record'; document.getElementById('addModal').classList.remove('hidden'); setTimeout(() => { document.getElementById('modalContent').classList.remove('translate-y-full'); }, 10);
+                document.getElementById('modalCurrency').value = tx.currency; document.getElementById('txDate').value = tx.date || getLocalDateString(new Date(tx.id));
+                document.getElementById('txAmount').value = tx.amount; document.getElementById('txNote').value = tx.note || ''; 
+                document.getElementById('recurringWrapper').classList.add('hidden'); document.getElementById('txRecurring').checked = false;
                 setTxType(tx.type); document.getElementById('saveBtn').innerText = 'Update';
-
-                setTimeout(() => {
-                    const grid = document.getElementById('categoryGrid');
-                    grid.querySelectorAll('.cat-item').forEach(div => {
-                        if (div.getAttribute('onclick').includes(`'${tx.category}'`)) div.click();
-                    });
-                }, 50);
+                setTimeout(() => { document.getElementById('categoryGrid').querySelectorAll('.cat-item').forEach(div => { if (div.getAttribute('onclick').includes(`'${tx.category}'`)) div.click(); }); }, 50);
             }
         }
 
@@ -415,21 +366,15 @@
             if (filteredTx.length === 0) { emptyState.classList.remove('hidden'); } else {
                 emptyState.classList.add('hidden');
                 filteredTx.sort((a, b) => parseLocalDate(b.date || b.id).getTime() - parseLocalDate(a.date || a.id).getTime()).forEach(tx => {
-                    const cat = [...expenseCategories, ...incomeCategories].find(c => c.id === tx.category) || { icon: '📝', name: 'Unknown' };
-                    const isExp = tx.type === 'expense';
+                    const cat = [...expenseCategories, ...incomeCategories].find(c => c.id === tx.category) || { icon: '📝', name: 'Unknown' }; const isExp = tx.type === 'expense';
                     const displayDate = parseLocalDate(tx.date || tx.id).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     const noteHtml = tx.note ? `<p class="text-xs text-gray-400 truncate max-w-[150px]">${tx.note}</p>` : '';
                     list.innerHTML += `
                         <div class="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border-l-4 ${isExp ? 'border-danger-light' : 'border-brand-light'}">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center text-xl">${cat.icon}</div>
-                                <div><p class="font-medium text-sm">${cat.name}</p><div class="flex items-center gap-2"><p class="text-xs text-gray-400">${displayDate}</p>${noteHtml}</div></div>
-                            </div>
+                            <div class="flex items-center gap-3"><div class="w-10 h-10 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center text-xl">${cat.icon}</div><div><p class="font-medium text-sm">${cat.name}</p><div class="flex items-center gap-2"><p class="text-xs text-gray-400">${displayDate}</p>${noteHtml}</div></div></div>
                             <div class="text-right">
                                 <p class="font-bold ${isExp ? 'text-danger-light dark:text-danger-dark' : 'text-brand-light dark:text-brand-dark'}">${isExp ? '-' : '+'}${sym}${formatMoney(tx.amount)}</p>
-                                <button onclick="openActionModal(${tx.id})" class="text-xs text-gray-400 hover:text-brand-light mt-1 flex items-center justify-end gap-1 ml-auto">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg> Edit
-                                </button>
+                                <button onclick="openActionModal(${tx.id})" class="text-xs text-gray-400 hover:text-brand-light mt-1 flex items-center justify-end gap-1 ml-auto"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg> Edit</button>
                             </div>
                         </div>`;
                 });
@@ -437,27 +382,16 @@
         }
 
         function renderBudgets(sym) {
-            const list = document.getElementById('budgetList'); list.innerHTML = '';
-            const now = new Date();
-            const currentMonthTx = transactions.filter(t => {
-                const d = parseLocalDate(t.date || t.id);
-                return t.currency === currentCurrency && t.type === 'expense' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-            });
-            let spentPerCat = {};
-            currentMonthTx.forEach(t => { spentPerCat[t.category] = (spentPerCat[t.category] || 0) + t.amount; });
-
+            const list = document.getElementById('budgetList'); list.innerHTML = ''; const now = new Date();
+            const currentMonthTx = transactions.filter(t => { const d = parseLocalDate(t.date || t.id); return t.currency === currentCurrency && t.type === 'expense' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
+            let spentPerCat = {}; currentMonthTx.forEach(t => { spentPerCat[t.category] = (spentPerCat[t.category] || 0) + t.amount; });
             expenseCategories.forEach(cat => {
-                const limit = budgets[`${currentCurrency}_${cat.id}`] || 0; const spent = spentPerCat[cat.id] || 0;
-                const percent = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
+                const limit = budgets[`${currentCurrency}_${cat.id}`] || 0; const spent = spentPerCat[cat.id] || 0; const percent = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
                 const barColor = percent >= 100 ? 'bg-danger-light' : (percent >= 80 ? 'bg-orange-400' : 'bg-brand-light');
                 list.innerHTML += `
                     <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm">
-                        <div class="flex justify-between items-center mb-2">
-                            <div class="flex items-center gap-2"><span>${cat.icon}</span><span class="font-medium text-sm">${cat.name}</span></div>
-                            <div class="text-right cursor-pointer" onclick="setBudget('${cat.id}', ${limit})">
-                                <p class="text-xs text-gray-500">Spent ${sym}${formatMoney(spent)} of</p>
-                                <p class="text-sm font-bold text-brand-light dark:text-brand-dark hover:underline">${sym}${formatMoney(limit)} limit</p>
-                            </div>
+                        <div class="flex justify-between items-center mb-2"><div class="flex items-center gap-2"><span>${cat.icon}</span><span class="font-medium text-sm">${cat.name}</span></div>
+                            <div class="text-right cursor-pointer" onclick="setBudget('${cat.id}', ${limit})"><p class="text-xs text-gray-500">Spent ${sym}${formatMoney(spent)} of</p><p class="text-sm font-bold text-brand-light dark:text-brand-dark hover:underline">${sym}${formatMoney(limit)} limit</p></div>
                         </div>
                         <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2"><div class="${barColor} h-2 rounded-full transition-all" style="width: ${limit > 0 ? percent : 0}%"></div></div>
                     </div>`;
@@ -470,31 +404,16 @@
         }
 
         function updateChart(filteredTx, sym) {
-            const expenseTx = filteredTx.filter(t => t.type === 'expense');
-            const isDark = document.documentElement.classList.contains('dark'); const textColor = isDark ? '#9ca3af' : '#6b7280';
+            const expenseTx = filteredTx.filter(t => t.type === 'expense'); const isDark = document.documentElement.classList.contains('dark'); const textColor = isDark ? '#9ca3af' : '#6b7280';
             let catData = {}, dateData = {};
             expenseTx.forEach(t => {
-                const catName = expenseCategories.find(c => c.id === t.category)?.name || 'Other';
-                catData[catName] = (catData[catName] || 0) + t.amount;
+                const catName = expenseCategories.find(c => c.id === t.category)?.name || 'Other'; catData[catName] = (catData[catName] || 0) + t.amount;
                 const d = parseLocalDate(t.date || t.id).toISOString().split('T')[0]; dateData[d] = (dateData[d] || 0) + t.amount;
             });
-
-            const ctxDonut = document.getElementById('expenseChart').getContext('2d');
-            if (myChart) myChart.destroy();
-            myChart = new Chart(ctxDonut, {
-                type: 'doughnut',
-                data: { labels: Object.keys(catData), datasets: [{ data: Object.values(catData), backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899'], borderWidth: isDark ? 2 : 0, borderColor: isDark ? '#1f2937' : '#ffffff' }] },
-                options: { responsive: true, cutout: '70%', plugins: { legend: { position: 'right', labels: { color: textColor, font: { size: 11 } } } } }
-            });
-
-            const ctxTrend = document.getElementById('trendChart').getContext('2d');
-            const sortedDates = Object.keys(dateData).sort();
-            if (myTrendChart) myTrendChart.destroy();
-            myTrendChart = new Chart(ctxTrend, {
-                type: 'line',
-                data: { labels: sortedDates.map(d => parseLocalDate(d).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})), datasets: [{ label: 'Spendings', data: sortedDates.map(d => dateData[d]), borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 }] },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: textColor } }, y: { ticks: { color: textColor } } } }
-            });
+            const ctxDonut = document.getElementById('expenseChart').getContext('2d'); if (myChart) myChart.destroy();
+            myChart = new Chart(ctxDonut, { type: 'doughnut', data: { labels: Object.keys(catData), datasets: [{ data: Object.values(catData), backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899'], borderWidth: isDark ? 2 : 0, borderColor: isDark ? '#1f2937' : '#ffffff' }] }, options: { responsive: true, cutout: '70%', plugins: { legend: { position: 'right', labels: { color: textColor, font: { size: 11 } } } } } });
+            const ctxTrend = document.getElementById('trendChart').getContext('2d'); const sortedDates = Object.keys(dateData).sort(); if (myTrendChart) myTrendChart.destroy();
+            myTrendChart = new Chart(ctxTrend, { type: 'line', data: { labels: sortedDates.map(d => parseLocalDate(d).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})), datasets: [{ label: 'Spendings', data: sortedDates.map(d => dateData[d]), borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: textColor } }, y: { ticks: { color: textColor } } } } });
         }
 
         function switchTab(tabId) {
@@ -505,12 +424,9 @@
         }
 
         function openModal() {
-            editingTxId = null; 
-            document.getElementById('modalTitle').innerText = 'Add Record';
-            document.getElementById('saveBtn').innerText = 'Save';
+            editingTxId = null; document.getElementById('modalTitle').innerText = 'Add Record'; document.getElementById('saveBtn').innerText = 'Save';
             document.getElementById('addModal').classList.remove('hidden'); setTimeout(() => { document.getElementById('modalContent').classList.remove('translate-y-full'); }, 10);
-            
-            document.getElementById('modalCurrency').value = currentCurrency; document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modalCurrency').value = currentCurrency; document.getElementById('txDate').value = getLocalDateString(new Date());
             setTxType('expense'); document.getElementById('txAmount').value = ''; document.getElementById('txNote').value = ''; document.getElementById('txRecurring').checked = false;
         }
 
@@ -521,8 +437,7 @@
             if (type === 'expense') {
                 btnExp.className = 'flex-1 py-1.5 rounded bg-danger-light text-white shadow-sm text-sm font-medium'; btnInc.className = 'flex-1 py-1.5 rounded text-gray-500 text-sm font-medium hover:bg-gray-100';
                 document.getElementById('saveBtn').className = 'w-full bg-danger-light text-white font-bold py-3 rounded-xl transition'; document.getElementById('txAmount').className = 'w-full text-4xl font-bold bg-transparent outline-none border-b border-gray-200 dark:border-gray-700 pb-2 text-danger-light';
-                if (!editingTxId) recWrap.classList.remove('hidden');
-                renderCategories(expenseCategories);
+                if (!editingTxId) recWrap.classList.remove('hidden'); renderCategories(expenseCategories);
             } else {
                 btnInc.className = 'flex-1 py-1.5 rounded bg-brand-light text-white shadow-sm text-sm font-medium'; btnExp.className = 'flex-1 py-1.5 rounded text-gray-500 text-sm font-medium hover:bg-gray-100';
                 document.getElementById('saveBtn').className = 'w-full bg-brand-light text-white font-bold py-3 rounded-xl transition'; document.getElementById('txAmount').className = 'w-full text-4xl font-bold bg-transparent outline-none border-b border-gray-200 dark:border-gray-700 pb-2 text-brand-light';
@@ -555,18 +470,16 @@
                 transactions.push({ id: Date.now(), type: currentType, amount, category, currency: modalCurr, date: txDate, note });
                 if (currentType === 'expense' && isRecurring) {
                     let nextD = parseLocalDate(txDate); nextD.setMonth(nextD.getMonth() + 1);
-                    recurring.push({ amount, category, currency: modalCurr, note, nextDate: `${nextD.getFullYear()}-${String(nextD.getMonth()+1).padStart(2,'0')}-${String(nextD.getDate()).padStart(2,'0')}` }); localStorage.setItem('moneyTrackerRecurring', JSON.stringify(recurring));
+                    recurring.push({ amount, category, currency: modalCurr, note, nextDate: getLocalDateString(nextD) }); localStorage.setItem('moneyTrackerRecurring', JSON.stringify(recurring));
                 }
                 showToast("Record saved!");
             }
-
             localStorage.setItem('moneyTrackerTx', JSON.stringify(transactions));
             if(modalCurr !== currentCurrency) { document.getElementById('currencySelector').value = currentCurrency = modalCurr; localStorage.setItem('selectedCurrency', modalCurr); }
             closeModal(); updateUI();
         }
 
         function deleteTx(id) { transactions = transactions.filter(t => t.id !== id); localStorage.setItem('moneyTrackerTx', JSON.stringify(transactions)); updateUI(); showToast("Record deleted"); }
-
         function showToast(msg) { const toast = document.getElementById('toast'); toast.innerText = msg; toast.classList.remove('opacity-0'); setTimeout(() => toast.classList.add('opacity-0'), 2500); }
 
         async function exportJSON() {
